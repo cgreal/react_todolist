@@ -1,23 +1,31 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { TodoForm, TodoList } from './components/todo'
-import { addTodo, generateId } from './lib/todoHelpers'
+import {TodoForm, TodoList} from './components/todo'
+import {addTodo, generateId,findById,toggleTodo,updateTodo, removeTodo} from './lib/todoHelpers'
+import {pipe, partial} from './lib/utils'
 
 class App extends Component {
   state = {
       todos: [
-        { id: 1, name: 'öğren', isComplete: true },
-        { id: 2, name: 'geliştir', isComplete: false },
-        { id: 3, name: 'paylaş', isComplete: false }
+        { id: 1, name: 'öğren'},
+        { id: 2, name: 'geliştir'},
+        { id: 3, name: 'paylaş'}
       ],
       currentTodo: ''
     }
+  handleRemove = (id,evt) =>{
+    evt.preventDefault()
+    const updatedTodos = removeTodo(this.state.todos, id)
+    this.setState({todos:updatedTodos})
+  }
+  
+ 
 
-  handleInputChange = (evt) => {
-    this.setState({
-      currentTodo: evt.target.value
-    })
+  handleToggle = (id) =>{
+    const getUpdatedTodos = pipe(findById, toggleTodo, partial(updateTodo, this.state.todos))
+    const updatedTodos = getUpdatedTodos(id, this.state.todos)
+    this.setState({todos: updatedTodos})
   }
 
   handleSubmit = (evt) =>{
@@ -31,12 +39,19 @@ class App extends Component {
       errorMessage: ''
     })
   }
+
   handleEmptySubmit = (evt) =>{
     evt.preventDefault()
       this.setState({
         errorMessage: 'Lütfen bir todo girin!'
       })
   }
+  handleInputChange = (evt) => {
+    this.setState({
+      currentTodo: evt.target.value
+    })
+  }
+  
   render() {
     const submitHandler = this.state.currentTodo ? this.handleSubmit : this.handleEmptySubmit
     return (
@@ -51,7 +66,9 @@ class App extends Component {
             currentTodo={this.state.currentTodo}
             handleSubmit={submitHandler} />
 
-          <TodoList todos={this.state.todos} />
+          <TodoList handleToggle={this.handleToggle} 
+          todos={this.state.todos} 
+          handleRemove={this.handleRemove}/>
 
         </div>
       </div>
